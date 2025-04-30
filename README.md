@@ -35,7 +35,7 @@ A modern, Notion-inspired study scheduling application built with Next.js and Ty
 
 1. Clone the repository:
 ```bash
-git clone [your-repo-url](https://github.com/aayush-wiz/study-scheduler.git)
+git clone [https://github.com/aayush-wiz/study-scheduler.git](https://github.com/aayush-wiz/study-scheduler.git)
 cd study-scheduler
 ```
 
