@@ -1,57 +1,85 @@
-'use client';
+"use client";
 
-import { Course } from './StudyScheduler';
+import { Course } from "./StudyScheduler";
 
 type ScheduleProps = {
-  courses: (Course & { allocatedHours: number })[];
-  totalHours: number;
-  showBreakTime: boolean;
+  allocatedCourses: (Course & { allocatedHours: number; weightedHours?: number; remainingHours?: number })[];
   breakTimeRatio: number;
+  isPomodoroMode: boolean;
 };
 
-export default function Schedule({ courses, totalHours, showBreakTime, breakTimeRatio }: ScheduleProps) {
-  const totalAllocatedHours = courses.reduce((sum, course) => sum + course.allocatedHours, 0);
-  const breakTimeHours = showBreakTime ? totalHours * breakTimeRatio : 0;
+export default function Schedule({
+  allocatedCourses,
+  breakTimeRatio,
+  isPomodoroMode,
+}: ScheduleProps) {
+  const totalAllocatedHours = allocatedCourses.reduce(
+    (sum, course) => sum + course.allocatedHours,
+    0
+  );
+  const totalHours = totalAllocatedHours / (1 - breakTimeRatio);
+  const breakTimeHours = totalHours * breakTimeRatio;
   const effectiveStudyHours = totalHours - breakTimeHours;
-  
+
   // Calculate daily recommendations (assuming 7 days a week)
   const getDailyRecommendation = (hours: number) => {
     const dailyHours = Math.round((hours / 7) * 10) / 10;
-    return dailyHours < 0.1 ? '< 0.1' : dailyHours;
+    return dailyHours < 0.1 ? "< 0.1" : dailyHours;
   };
 
   // Get deadline status
   const getDeadlineStatus = (deadline?: string) => {
     if (!deadline) return null;
-    
+
     const daysUntil = Math.ceil(
       (new Date(deadline).getTime() - new Date().getTime()) / (1000 * 3600 * 24)
     );
-    
-    if (daysUntil < 0) return { text: 'Overdue', color: 'text-red-600' };
-    if (daysUntil === 0) return { text: 'Due today', color: 'text-orange-600' };
-    if (daysUntil <= 7) return { text: `${daysUntil}d left`, color: 'text-yellow-600' };
-    return { text: `${Math.floor(daysUntil / 7)}w ${daysUntil % 7}d left`, color: 'text-green-600' };
+
+    if (daysUntil < 0) return { text: "Overdue", color: "text-red-600" };
+    if (daysUntil === 0) return { text: "Due today", color: "text-orange-600" };
+    if (daysUntil <= 7)
+      return { text: `${daysUntil}d left`, color: "text-yellow-600" };
+    return {
+      text: `${Math.floor(daysUntil / 7)}w ${daysUntil % 7}d left`,
+      color: "text-green-600",
+    };
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Weekly Study Schedule</h2>
-      <div className="space-y-4">
-        {courses.map(course => {
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      {isPomodoroMode && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium">Pomodoro Mode Active</span>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Schedule optimized for 25-minute focus sessions with 5-minute breaks
+          </p>
+        </div>
+      )}
+
+      <div className="divide-y divide-gray-100">
+        {allocatedCourses.map((course) => {
           const deadlineStatus = getDeadlineStatus(course.deadline);
-          const progressPercentage = Math.round((course.completedHours / course.hoursNeeded) * 100);
-          
+          const progressPercentage = Math.round(
+            (course.completedHours / course.hoursNeeded) * 100
+          );
+
           return (
-            <div key={course.id} className="border rounded-lg p-4">
+            <div key={course.id} className="p-4 transition-colors">
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-medium">{course.name}</h3>
+                  <h3 className="text-gray-800 font-medium">{course.name}</h3>
                   <div className="text-sm text-gray-500 mt-1">
                     {course.allocatedHours > 0 ? (
                       <>
                         <span>{course.allocatedHours}h/week • </span>
-                        <span>{getDailyRecommendation(course.allocatedHours)}h/day</span>
+                        <span>
+                          {getDailyRecommendation(course.allocatedHours)}h/day
+                        </span>
                       </>
                     ) : (
                       <span className="text-green-600">Completed!</span>
@@ -60,23 +88,20 @@ export default function Schedule({ courses, totalHours, showBreakTime, breakTime
                 </div>
                 <div className="text-right">
                   <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      course.difficulty === 'Hard' ? 'bg-red-100 text-red-800' :
-                      course.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {course.difficulty}
-                    </span>
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      course.priority === 'High' ? 'bg-red-100 text-red-800' :
-                      course.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {course.priority} Priority
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs ${
+                        course.priority === "High"
+                          ? "bg-red-50 text-red-600 border border-red-100"
+                          : course.priority === "Medium"
+                          ? "bg-amber-50 text-amber-600 border border-amber-100"
+                          : "bg-green-50 text-green-600 border border-green-100"
+                      }`}
+                    >
+                      {course.priority}
                     </span>
                   </div>
                   {deadlineStatus && (
-                    <div className={`text-sm mt-1 ${deadlineStatus.color}`}>
+                    <div className={`text-xs mt-1 ${deadlineStatus.color}`}>
                       {deadlineStatus.text}
                     </div>
                   )}
@@ -84,13 +109,16 @@ export default function Schedule({ courses, totalHours, showBreakTime, breakTime
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
+                <div className="flex justify-between text-xs text-gray-500">
                   <span>Progress:</span>
-                  <span>{progressPercentage}% ({course.completedHours}/{course.hoursNeeded}h)</span>
+                  <span>
+                    {progressPercentage}% ({course.completedHours}/
+                    {course.hoursNeeded}h)
+                  </span>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500"
+                    className="h-full bg-gray-700"
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
@@ -100,16 +128,21 @@ export default function Schedule({ courses, totalHours, showBreakTime, breakTime
                 <div className="mt-3">
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
                     <span>Time allocation</span>
-                    <span>{Math.round((course.allocatedHours / effectiveStudyHours) * 100)}% of study time</span>
+                    <span>
+                      {Math.round(
+                        (course.allocatedHours / effectiveStudyHours) * 100
+                      )}
+                      % of study time
+                    </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${
-                        course.difficulty === 'Hard' ? 'bg-red-500' :
-                        course.difficulty === 'Medium' ? 'bg-yellow-500' :
-                        'bg-green-500'
-                      }`}
-                      style={{ width: `${(course.allocatedHours / effectiveStudyHours) * 100}%` }}
+                      className="h-full bg-gray-400"
+                      style={{
+                        width: `${
+                          (course.allocatedHours / effectiveStudyHours) * 100
+                        }%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -117,58 +150,38 @@ export default function Schedule({ courses, totalHours, showBreakTime, breakTime
             </div>
           );
         })}
-        
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm font-medium">
-              <span>Total Weekly Hours:</span>
-              <span>{totalHours} hours</span>
-            </div>
-            
-            {showBreakTime && (
-              <>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Study Time:</span>
-                  <span>{effectiveStudyHours} hours ({Math.round((effectiveStudyHours / totalHours) * 100)}%)</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Break Time:</span>
-                  <span>{breakTimeHours} hours ({Math.round(breakTimeRatio * 100)}%)</span>
-                </div>
-              </>
-            )}
-            
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Daily Average:</span>
-              <span>{getDailyRecommendation(totalHours)} hours/day</span>
-            </div>
-            
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Allocated Study Hours:</span>
-              <span>
-                {totalAllocatedHours} hours 
-                ({Math.round((totalAllocatedHours / effectiveStudyHours) * 100)}% of study time)
-              </span>
-            </div>
+      </div>
 
-            {showBreakTime && (
-              <div className="mt-2">
-                <div className="text-xs text-gray-500 mb-1">Time Distribution</div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500"
-                    style={{ width: `${(effectiveStudyHours / totalHours) * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Study Time</span>
-                  <span>Break Time</span>
-                </div>
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm font-medium text-gray-700">
+            <span>Total Weekly Study:</span>
+            <span>{Math.round(effectiveStudyHours * 10) / 10} hours</span>
+          </div>
+          
+          {breakTimeRatio > 0 && (
+            <>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Study Time:</span>
+                <span>
+                  {Math.round(effectiveStudyHours * 10) / 10} hours ({Math.round((1 - breakTimeRatio) * 100)}%)
+                </span>
               </div>
-            )}
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Break Time:</span>
+                <span>
+                  {Math.round(breakTimeHours * 10) / 10} hours ({Math.round(breakTimeRatio * 100)}%)
+                </span>
+              </div>
+            </>
+          )}
+
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Daily Average:</span>
+            <span>{getDailyRecommendation(totalHours)} hours/day</span>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

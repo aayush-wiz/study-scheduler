@@ -116,13 +116,13 @@ export default function CourseForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-6 bg-white rounded-lg border border-gray-200 space-y-6"
-    >
-      <div>
-        <label className="block text-sm text-gray-800">
-          Course Name
+    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="p-4 space-y-4">
+        {/* Course Name */}
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">
+            Course Name
+          </label>
           <input
             type="text"
             value={courseName}
@@ -130,55 +130,71 @@ export default function CourseForm({
               setCourseName(e.target.value);
               setError("");
             }}
-            className="mt-2 block w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
             placeholder="Enter course name..."
           />
-        </label>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm text-gray-800">
-            Difficulty
-            <select
-              value={difficulty}
-              onChange={(e) => {
-                setDifficulty(e.target.value as Course["difficulty"]);
-                setError("");
-              }}
-              className="mt-2 block w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none"
-            >
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </label>
         </div>
 
-        <div>
-          <label className="block text-sm text-gray-800">
-            Priority
-            <select
-              value={priority}
-              onChange={(e) => {
-                setPriority(e.target.value as Course["priority"]);
-                setError("");
-              }}
-              className="mt-2 block w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none"
-            >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </label>
-        </div>
-      </div>
+        {/* Difficulty and Priority */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">
+              Difficulty
+            </label>
+            <div className="relative">
+              <select
+                value={difficulty}
+                onChange={(e) => {
+                  setDifficulty(e.target.value as Course["difficulty"]);
+                  setError("");
+                }}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none text-sm"
+              >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm text-gray-800">
-            Hours Needed per Week
-            <div className="mt-2 relative rounded-md">
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">
+              Priority
+            </label>
+            <div className="relative">
+              <select
+                value={priority}
+                onChange={(e) => {
+                  setPriority(e.target.value as Course["priority"]);
+                  setError("");
+                }}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none text-sm"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Hours and Deadline */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">
+              Hours Needed
+            </label>
+            <div className="relative">
               <input
                 type="text"
                 inputMode="decimal"
@@ -186,31 +202,23 @@ export default function CourseForm({
                 value={hoursNeeded}
                 onChange={(e) => handleHoursChange(e.target.value)}
                 placeholder="Enter hours..."
-                className="block w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors pr-12"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-12 text-sm"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-400 text-sm">hrs</span>
+                <span className="text-gray-400 text-xs">hrs/week</span>
               </div>
             </div>
-            <div className="mt-1.5 flex justify-between">
-              <span className="text-xs text-gray-500">
-                Min: {MIN_COURSE_HOURS}
-              </span>
-              <span className="text-xs text-gray-500">
-                Max: {MAX_COURSE_HOURS}
-              </span>
-            </div>
             {availableHours > 0 && (
-              <p className="mt-1.5 text-sm text-gray-500">
+              <p className="mt-1 text-xs text-gray-500">
                 {remainingHours} hours remaining
               </p>
             )}
-          </label>
-        </div>
+          </div>
 
-        <div>
-          <label className="block text-sm text-gray-800">
-            Deadline (Optional)
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">
+              Deadline (Optional)
+            </label>
             <input
               type="date"
               value={deadline}
@@ -219,24 +227,26 @@ export default function CourseForm({
                 setError("");
               }}
               min={getMinDate()}
-              className="mt-2 block w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
             />
-          </label>
+          </div>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-md text-xs">
+            {error}
+          </div>
+        )}
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-md text-sm">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        className="w-full px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-      >
-        Add Course
-      </button>
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-right">
+        <button
+          type="submit"
+          className="px-4 py-1.5 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+        >
+          Add Course
+        </button>
+      </div>
     </form>
   );
 }

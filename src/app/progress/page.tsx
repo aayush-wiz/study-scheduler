@@ -1,141 +1,188 @@
-'use client';
+"use client";
 
-import { useContext } from 'react';
-import { Course } from '../components/StudyScheduler';
-import Link from 'next/link';
-import { CourseContext } from '../layout';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useCourses } from "@/components/courses/CourseProvider";
+import type { Course } from "@/types/course";
 
-export default function Progress() {
-  const { courses, setCourses } = useContext(CourseContext);
-
-  const updateProgress = (courseId: string, completedHours: number) => {
-    setCourses(courses.map(course => 
-      course.id === courseId 
-        ? { ...course, completedHours: Math.min(completedHours, course.hoursNeeded) }
-        : course
-    ));
+export default function ProgressPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get("courseId");
+  
+  const { courses, setCourses } = useCourses();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [completedHours, setCompletedHours] = useState(0);
+  const [sessionHours, setSessionHours] = useState(1);
+  
+  useEffect(() => {
+    if (!courseId) {
+      router.push("/");
+      return;
+    }
+    
+    const foundCourse = courses.find(c => c.id === courseId);
+    if (!foundCourse) {
+      router.push("/");
+      return;
+    }
+    
+    setCourse(foundCourse);
+    setCompletedHours(foundCourse.completedHours);
+  }, [courseId, courses, router]);
+  
+  const handleUpdateProgress = () => {
+    if (!course) return;
+    
+    // Update course progress
+    const newHours = Math.min(completedHours + sessionHours, course.hoursNeeded);
+    
+    // Update the courses array
+    setCourses(
+      courses.map(c => 
+        c.id === courseId 
+          ? { ...c, completedHours: newHours } 
+          : c
+      )
+    );
+    
+    // Go back to main page
+    router.push("/");
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Course Progress</h1>
-            <p className="mt-2 text-gray-600">
-              Track and update your study progress
-            </p>
-          </div>
-          <Link
-            href="/"
-            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-          >
-            Back to Schedule
+  
+  if (!course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f8f8]">
+        <div className="text-center">
+          <div className="mb-2 text-gray-500">Loading course data...</div>
+          <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
+            Return to dashboard
           </Link>
         </div>
-
-        <div className="space-y-6">
-          {courses.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <p className="text-gray-500">No courses added yet.</p>
-              <Link
-                href="/"
-                className="mt-4 inline-block text-blue-600 hover:text-blue-700"
-              >
-                Go add some courses
-              </Link>
+      </div>
+    );
+  }
+  
+  const progressPercentage = Math.round((completedHours / course.hoursNeeded) * 100);
+  
+  return (
+    <div className="min-h-screen bg-[#f8f8f8] text-gray-800 font-sans">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center mb-6">
+            <Link href="/" className="text-gray-500 hover:text-gray-700 mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+            </Link>
+            <h1 className="text-xl font-medium text-gray-800">Update Progress</h1>
+          </div>
+          
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-gray-800 mb-1">{course.name}</h2>
+            <div className="flex items-center text-sm text-gray-500 mb-3">
+              <span className="mr-2">Difficulty: {course.difficulty}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                course.priority === "High"
+                  ? "bg-red-50 text-red-600"
+                  : course.priority === "Medium"
+                  ? "bg-yellow-50 text-yellow-600"
+                  : "bg-green-50 text-green-600"
+              }`}>
+                {course.priority} Priority
+              </span>
             </div>
-          ) : (
-            courses.map(course => {
-              const progress = Math.round((course.completedHours / course.hoursNeeded) * 100);
-              const isCompleted = course.completedHours >= course.hoursNeeded;
-              
-              return (
-                <div key={course.id} className="bg-white rounded-lg shadow p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">{course.name}</h2>
-                      <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
-                        <span className={`${
-                          course.difficulty === 'Hard' ? 'text-red-600' :
-                          course.difficulty === 'Medium' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
-                          {course.difficulty}
-                        </span>
-                        <span>•</span>
-                        <span className={`${
-                          course.priority === 'High' ? 'text-red-600' :
-                          course.priority === 'Medium' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
-                          {course.priority} Priority
-                        </span>
-                        {course.deadline && (
-                          <>
-                            <span>•</span>
-                            <span>Due: {new Date(course.deadline).toLocaleDateString()}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        isCompleted ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {isCompleted ? 'Completed' : `${progress}% Complete`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm text-gray-500 mb-1">
-                        <span>Progress ({course.completedHours}/{course.hoursNeeded} hours)</span>
-                        <span>{progress}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${
-                            isCompleted ? 'bg-green-500' : 'bg-blue-500'
-                          }`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-grow">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Update Progress
-                          <input
-                            type="range"
-                            min="0"
-                            max={course.hoursNeeded}
-                            value={course.completedHours}
-                            onChange={(e) => updateProgress(course.id, Number(e.target.value))}
-                            className="w-full h-2 mt-2"
-                          />
-                        </label>
-                      </div>
-                      <div className="w-20">
-                        <input
-                          type="number"
-                          min="0"
-                          max={course.hoursNeeded}
-                          value={course.completedHours}
-                          onChange={(e) => updateProgress(course.id, Number(e.target.value))}
-                          className="w-full px-2 py-1 text-sm border rounded"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+            
+            {course.deadline && (
+              <div className="text-sm text-gray-500 mb-3">
+                Deadline: {new Date(course.deadline).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+          
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-600 mb-1">
+              <span>Current Progress</span>
+              <span>{completedHours}/{course.hoursNeeded} hours ({progressPercentage}%)</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  course.priority === "High"
+                    ? "bg-red-400"
+                    : course.priority === "Medium"
+                    ? "bg-yellow-400"
+                    : "bg-green-400"
+                }`}
+                style={{
+                  width: `${Math.min(100, progressPercentage)}%`,
+                }}
+              />
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Add Study Session Hours
+            </label>
+            <div className="flex items-center">
+              <button
+                onClick={() => setSessionHours(Math.max(0.5, sessionHours - 0.5))}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-l-md text-gray-500 hover:bg-gray-100"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                value={sessionHours}
+                onChange={(e) => setSessionHours(Math.max(0.5, Number(e.target.value)))}
+                step="0.5"
+                min="0.5"
+                className="w-20 px-3 py-1.5 text-center border-t border-b border-gray-200 focus:outline-none"
+              />
+              <button
+                onClick={() => setSessionHours(sessionHours + 0.5)}
+                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-r-md text-gray-500 hover:bg-gray-100"
+              >
+                +
+              </button>
+              <span className="ml-2 text-sm text-gray-500">hours</span>
+            </div>
+            
+            <div className="mt-4 text-sm text-gray-500">
+              {sessionHours > 0 ? (
+                <>
+                  This will update your progress to {Math.min(completedHours + sessionHours, course.hoursNeeded)}/{course.hoursNeeded} hours
+                  ({Math.min(100, Math.round(((completedHours + sessionHours) / course.hoursNeeded) * 100))}%)
+                </>
+              ) : "Please enter a valid number of hours"}
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={handleUpdateProgress}
+              disabled={sessionHours <= 0 || completedHours >= course.hoursNeeded}
+              className="flex-1 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              Update Progress
+            </button>
+            <Link 
+              href="/"
+              className="flex-1 text-center bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </Link>
+          </div>
+          
+          {completedHours >= course.hoursNeeded && (
+            <div className="mt-4 p-3 bg-green-50 text-green-600 text-sm rounded-md border border-green-200">
+              Congratulations! You've completed all the required hours for this course.
+            </div>
           )}
         </div>
       </div>
     </div>
   );
-} 
+}
