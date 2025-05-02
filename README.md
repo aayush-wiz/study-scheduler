@@ -1,6 +1,6 @@
 # Study Scheduler
 
-A modern, Notion-inspired study scheduling application built with Next.js and TypeScript. This application helps students efficiently manage their study time by automatically generating optimized study schedules based on course difficulty, priority, and deadlines.
+A modern study scheduling application built with Next.js and TypeScript. This application helps students efficiently manage their study time by automatically generating optimized study schedules based on course difficulty, priority, and deadlines.
 
 ## Features
 
@@ -12,8 +12,9 @@ A modern, Notion-inspired study scheduling application built with Next.js and Ty
 - ⏰ Pomodoro mode support
 - 📊 Progress tracking for each course
 - 🔄 Automatic break time calculations
-- 💾 Local storage for data persistence
-- 🎨 Clean, Notion-inspired UI
+- 🔐 User authentication
+- 👤 User profiles with customizable images
+- ☁️ Cloud storage for profile images
 - 📱 Responsive design
 
 ## Tech Stack
@@ -21,8 +22,9 @@ A modern, Notion-inspired study scheduling application built with Next.js and Ty
 - Next.js 13+ (App Router)
 - TypeScript
 - Tailwind CSS
+- NextAuth for authentication
+- Cloudinary for image storage
 - Context API for state management
-- LocalStorage for data persistence
 
 ## Getting Started
 
@@ -57,12 +59,12 @@ yarn dev
 
 ## Upcoming Features
 
-- 🔐 User authentication
 - 💽 MongoDB integration for data persistence
-- 👥 User-specific schedules and settings
-- 📱 Mobile app support
+- 👥 Shared schedules and collaborative study planning
 - 📊 Enhanced analytics and insights
 - 🔔 Reminders and notifications
+- 📅 Calendar integration
+- 🔍 Advanced filtering and sorting options
 
 ## Contributing
 

@@ -5,8 +5,9 @@ import bcrypt from "bcryptjs";
 import clientPromise from "@/lib/mongodb";
 import { User } from "@/models/User";
 import connectDB from "@/lib/db";
+import { NextAuthOptions } from "next-auth";
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
@@ -62,6 +63,8 @@ const handler = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

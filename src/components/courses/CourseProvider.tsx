@@ -1,49 +1,49 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import type { Course } from "@/types/course";
 
 interface CourseContextType {
   courses: Course[];
   setCourses: (courses: Course[]) => void;
-  availableHours: number;
-  setAvailableHours: (hours: number) => void;
 }
 
 const CourseContext = createContext<CourseContextType>({
   courses: [],
   setCourses: () => {},
-  availableHours: 0,
-  setAvailableHours: () => {},
 });
 
 export function CourseProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "guest";
   const [courses, setCourses] = useState<Course[]>([]);
-  const [availableHours, setAvailableHours] = useState<number>(0);
 
+  // Load user-specific data from localStorage
   useEffect(() => {
-    const savedCourses = localStorage.getItem("studySchedulerCourses");
-    if (savedCourses) {
-      setCourses(JSON.parse(savedCourses));
+    if (userId) {
+      const savedCourses = localStorage.getItem(
+        `studySchedulerCourses_${userId}`
+      );
+      if (savedCourses) {
+        setCourses(JSON.parse(savedCourses));
+      }
     }
+  }, [userId]);
 
-    const savedHours = localStorage.getItem("studySchedulerHours");
-    if (savedHours) {
-      setAvailableHours(Number(savedHours));
+  // Save user-specific data to localStorage
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem(
+        `studySchedulerCourses_${userId}`,
+        JSON.stringify(courses)
+      );
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("studySchedulerCourses", JSON.stringify(courses));
-  }, [courses]);
-
-  useEffect(() => {
-    localStorage.setItem("studySchedulerHours", String(availableHours));
-  }, [availableHours]);
+  }, [courses, userId]);
 
   return (
     <CourseContext.Provider
-      value={{ courses, setCourses, availableHours, setAvailableHours }}
+      value={{ courses, setCourses }}
     >
       {children}
     </CourseContext.Provider>
