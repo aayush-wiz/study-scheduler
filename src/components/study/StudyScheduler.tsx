@@ -4,17 +4,9 @@ import { useState, useEffect } from "react";
 import CourseForm from "./CourseForm";
 import Schedule from "./Schedule";
 import { useCourses } from "@/components/courses/CourseProvider";
+import { Course } from "@/types/course";
 
-export type Course = {
-  id: string;
-  name: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  hoursNeeded: number;
-  priority: "Low" | "Medium" | "High";
-  deadline?: string; // Optional deadline
-  completedHours: number; // Track progress
-};
-
+// These constants will be used for weight calculations
 const DIFFICULTY_WEIGHTS = {
   Hard: 1.5,
   Medium: 1,
@@ -36,8 +28,8 @@ export default function StudyScheduler({
 }: {
   isPomodoroMode?: boolean;
 }) {
-  const { courses, setCourses, availableHours, setAvailableHours } =
-    useCourses();
+  const { courses, setCourses } = useCourses();
+  const [availableHours, setAvailableHours] = useState(20); // Default to 20 hours
   const [error, setError] = useState<string>("");
   const [showBreakTime, setShowBreakTime] = useState<boolean>(true);
   const [hoursInput, setHoursInput] = useState(availableHours.toString());

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { User } from "@/models/User";
 import connectDB from "@/lib/db";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 // Define Cloudinary upload result type
@@ -29,20 +29,17 @@ export async function PUT(req: Request) {
     await connectDB();
 
     // Find user by email as a fallback if id is not available
-    const userLookup = session.user.id 
-      ? { _id: session.user.id } 
+    const userLookup = session.user.id
+      ? { _id: session.user.id }
       : { email: session.user.email };
 
     console.log("Looking up user with:", userLookup);
-    
+
     // First, get the current user to compare with changes
     const currentUser = await User.findOne(userLookup);
     if (!currentUser) {
       console.error("User not found with lookup:", userLookup);
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const formData = await req.formData();
@@ -52,10 +49,7 @@ export async function PUT(req: Request) {
 
     // Validate email and name
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Only check for email existence if the user is changing their email
@@ -63,7 +57,7 @@ export async function PUT(req: Request) {
       // Check if the new email already exists
       const existingUser = await User.findOne({
         email,
-        _id: { $ne: currentUser._id }
+        _id: { $ne: currentUser._id },
       });
 
       if (existingUser) {
@@ -88,13 +82,13 @@ export async function PUT(req: Request) {
 
         // Generate a unique ID for the image
         const uniqueFilename = `${currentUser._id}_profile_${Date.now()}`;
-        
+
         // Upload to Cloudinary
-        const uploadResult = await uploadToCloudinary(buffer, {
-          folder: 'study-scheduler/profiles',
+        const uploadResult = (await uploadToCloudinary(buffer, {
+          folder: "study-scheduler/profiles",
           public_id: uniqueFilename,
-          transformation: { width: 400, height: 400, crop: 'limit' }
-        }) as CloudinaryUploadResult;
+          transformation: { width: 400, height: 400, crop: "limit" },
+        })) as CloudinaryUploadResult;
 
         if (uploadResult && uploadResult.secure_url) {
           updateData.image = uploadResult.secure_url;
@@ -141,4 +135,4 @@ export async function PUT(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
